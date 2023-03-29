@@ -6,8 +6,11 @@ import dotenv from "dotenv";
 import multer from "multer";
 import helmet from "helmet";
 import morgan from "morgan";
-import fileURLToPath from "url";
+import {fileURLToPath} from "url";
 import path from "path";
+import authRoutes from "./routes/auth.js";
+import {register} from "./controllers/auth.js";
+
 
 /* Configurations */
 const __filename = fileURLToPath(import.meta.url);
@@ -33,4 +36,23 @@ const storage = multer.diskStorage({
     }
 });
 
-const upload = multer({storage})
+const upload = multer({storage});
+
+/* Routes with files */
+app.post("/auth/register", upload.single("picture"), register);
+
+
+/* Routes */
+app.use("/auth",authRoutes);
+
+/* Mongoose Setup */
+const port = process.env.PORT || 6001;
+mongoose.set("strictQuery", true);
+mongoose.connect(process.env.MONGO_URL,{
+    useNewUrlParser : true,
+    useUnifiedTopology : true,
+}).then(()=>{
+    app.listen(port,()=>{
+        console.log(`Server started at Port ${port}.`);
+    })
+}).catch((err)=>console.log(err));
